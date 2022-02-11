@@ -7,18 +7,11 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'AmMention',
-  props: {
-    name: {
-      type: String,
-      default: '',
-    },
-  },
-})
+<script setup lang="ts" name="AmMention">
+interface IProps {
+  name: string
+}
+defineProps<IProps>()
 </script>
 <style css>
 .mention-container {

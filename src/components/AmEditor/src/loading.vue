@@ -4,21 +4,14 @@
   </a-spin>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts" name="AmLoading">
 import ASpin from 'ant-design-vue/es/spin'
 import 'ant-design-vue/es/spin/style'
-
-export default defineComponent({
-  name: 'AmLoading',
-  components: {
-    ASpin,
-  },
-  props: {
-    text: String,
-    loading: Boolean,
-  },
-})
+interface IProps {
+  text: string
+  loading: boolean
+}
+defineProps<IProps>()
 </script>
 <style css>
 .loading {
