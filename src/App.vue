@@ -3,8 +3,8 @@
 // you can use this to manipulate the document head in any components,
 // they will be rendered correctly in the html results with vite-ssg
 useHead({
-  title: 'Modern Vue',
-  meta: [{ name: 'description', content: 'Opinionated Vite Starter Template' }],
+  title: 'Am-Editor Vue Example',
+  meta: [{ name: 'description', content: 'Vue Example of am-editor' }],
 })
 </script>
 
