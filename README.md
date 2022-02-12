@@ -1,16 +1,31 @@
-# Am-editor example of Vue
+## Modern Vue
 
-This project use [Modern Vue template](https://github.com/byoungd/modern-vue-template)
+Am-editor for vue with example and toolbar(wip).
+
+<p align='center'>
+<b>English</b> | <a href="https://github.com/byoungd/am-editor-vue/blob/main/README.zh-CN.md">简体中文</a>
+</p>
 
 ## Usage
 
+> Requires Node >=14
+
 ### Development
 
+Install Rush tool kit:
+
+```bash
+npm i -g pnpm typescript eslint@7 @microsoft/rush prettier
 ```
-pnpm i
 
-pnpm dev
+Go project folder and using `rushx` run and visit `http://localhost:3333` :
 
+```bash
+rush update
+
+cd apps/example
+
+rushx dev
 ```
 
 ### Build
@@ -18,24 +33,18 @@ pnpm dev
 To build the App, run
 
 ```bash
+cd apps/example
 
-pnpm build
-
+rushx build
 ```
 
 With Env:
 
 ```bash
-
-pnpm build:test
-
+rushx build:test
 ```
 
 And you will see the generated file in `dist` that ready to be served.
-
-## Thanks
-
-- [Vitesse](https://github.com/antfu/vitesse)
 
 ## Final
 
