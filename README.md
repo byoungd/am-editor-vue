@@ -23,6 +23,8 @@ Go project folder and using `rushx` run and visit `http://localhost:3333` :
 ```bash
 rush update
 
+rush rebuild -T example
+
 cd apps/example
 
 rushx dev

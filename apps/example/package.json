@@ -73,12 +73,12 @@
     "@aomao/plugin-status": "^2.6.16",
     "@aomao/plugin-video": "^2.6.16",
     "@aomao/plugin-line-height": "^2.6.16",
-    "@aomao/toolbar-vue": "^2.6.16",
     "ant-design-vue": "^2.2.6",
     "core-js": "^3.6.5",
     "reconnecting-websocket": "^4.4.0",
     "sharedb": "^1.9.2",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "@am/toolbar-vue": "workspace:*"
   },
   "devDependencies": {
     "@types/sharedb": "^1.0.14",

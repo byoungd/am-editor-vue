@@ -1,5 +1,5 @@
 <template>
-  <a-spin class="loading" :tip="text" :spinning="loading">
+  <a-spin class="loading" :tip="text || '加载中'" :spinning="loading">
     <slot></slot>
   </a-spin>
 </template>
@@ -8,7 +8,7 @@
 import ASpin from 'ant-design-vue/es/spin'
 import 'ant-design-vue/es/spin/style'
 interface IProps {
-  text: string
+  text?: string
   loading: boolean
 }
 defineProps<IProps>()

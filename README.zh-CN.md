@@ -19,6 +19,8 @@ npm i -g pnpm typescript eslint@7 @microsoft/rush prettier
 ```bash
 rush update
 
+rush rebuild -T example
+
 cd apps/example
 
 rushx dev
