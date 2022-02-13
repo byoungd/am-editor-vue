@@ -50,135 +50,134 @@
     />
   </div>
 </template>
-<script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
-import { dropdownProps, DropdownListItem } from '../types'
+<script setup lang="ts" name="AmDropdown">
+import { Ref, ref, useSlots, watch, toRefs } from 'vue'
+import { DropdownListItem } from '../types'
 import { useRight } from '../hooks'
 import AmDropdownList from './dropdown-list.vue'
 import AmButton from './button.vue'
+import { IPropEngine } from './IPropTypes'
+import { Placement } from '@aomao/engine'
 
-export default defineComponent({
-  name: 'AmDropdown',
-  components: {
-    AmButton,
-    AmDropdownList,
-  },
-  props: dropdownProps,
-  setup(props, cxt) {
-    const valuesVar = ref<string | number | string[]>('')
-    let buttonContent = ref<
-      DropdownListItem | { icon?: string; content?: string } | undefined
-    >(undefined)
-    const visible = ref(false)
-    const targetRef = ref<typeof AmButton | undefined>(undefined)
-    const buttonRef = ref<HTMLDivElement | null>(null)
-    const isRight = useRight(buttonRef)
+interface IProps {
+  engine?: IPropEngine
+  name: string
+  values?: string | number | Array<string>
+  items: DropdownListItem[]
+  icon?: string
+  placement?: Placement
+  content?: string | (() => string)
+  title: string
+  disabled?: boolean
+  single?: boolean
+  className?: string
+  direction?: 'vertical' | 'horizontal'
+  onSelect?: (event: MouseEvent, key: string) => void | boolean
+  hasArrow?: boolean
+  hasDot?: boolean
+}
 
-    const update = (values?: string | number | string[]) => {
-      if (props.single !== false)
-        values = Array.isArray(values) && values.length > 0 ? values[0] : values
-      const item = props.items.find(
-        (item) =>
-          (typeof values === 'string' && item.key === values) ||
-          (Array.isArray(values) && values.indexOf(item.key) > -1)
-      )
-      const defaultItem =
-        props.items.length > 0
-          ? props.items.find((item) => item.isDefault === true) || props.items[0]
-          : null
+const props = defineProps<IProps>()
+const { icon, placement } = toRefs(props)
+const slots = useSlots()
 
-      if (item) {
-        if (cxt.slots.default) {
-          buttonContent.value = item
-        } else if (typeof props.content === 'function') {
-          buttonContent.value = { icon: props.icon, content: props.content() }
-        } else if (Array.isArray(values) && values.length > 1) {
-          buttonContent.value = { icon: props.icon, content: props.content }
-        } else {
-          buttonContent.value = {
-            icon: item.icon,
-            content: typeof item.content === 'function' ? item.content() : item.content,
-          }
-        }
-      } else if (props.icon || props.content) {
-        if (!Array.isArray(values) || values.length < 1) {
-          buttonContent.value = {
-            icon: props.icon,
-            content:
-              typeof props.content === 'function' ? props.content() : props.content,
-          }
-        }
-      } else if (defaultItem) {
-        buttonContent.value = {
-          icon: defaultItem.icon,
-          content:
-            typeof defaultItem.content === 'function'
-              ? defaultItem.content()
-              : defaultItem.content,
-        }
-      }
-      valuesVar.value =
-        values || (props.icon || props.content ? '' : defaultItem?.key || '')
-    }
+const valuesVar = ref<string | number | string[]>('')
+let buttonContent = ref<
+  DropdownListItem | { icon?: string; content?: string } | undefined
+>(undefined)
+const visible = ref(false)
+const targetRef = ref<typeof AmButton | undefined>(undefined)
+const buttonRef = ref<HTMLDivElement | null>(null)
+const isRight = useRight(buttonRef as Ref<HTMLElement | null>)
 
-    const triggerMouseDown = (event: MouseEvent) => {
-      event.preventDefault()
-    }
-    const triggerClick = (event: MouseEvent) => {
-      event.preventDefault()
-      if (props.disabled) {
-        return
-      }
-      if (visible.value) {
-        hide()
-      } else {
-        show()
+const update = (values?: string | number | string[]) => {
+  if (props.single !== false)
+    values = Array.isArray(values) && values.length > 0 ? values[0] : values
+  const item = props.items.find(
+    (item) =>
+      (typeof values === 'string' && item.key === values) ||
+      (Array.isArray(values) && values.indexOf(item.key) > -1)
+  )
+  const defaultItem =
+    props.items.length > 0
+      ? props.items.find((item) => item.isDefault === true) || props.items[0]
+      : null
+
+  if (item) {
+    if (slots.default) {
+      buttonContent.value = item
+    } else if (typeof props.content === 'function') {
+      buttonContent.value = { icon: props.icon, content: props.content() }
+    } else if (Array.isArray(values) && values.length > 1) {
+      buttonContent.value = { icon: props.icon, content: props.content }
+    } else {
+      buttonContent.value = {
+        icon: item.icon,
+        content: typeof item.content === 'function' ? item.content() : item.content,
       }
     }
-    const show = () => {
-      visible.value = true
-    }
-    const hide = (event?: MouseEvent) => {
-      if (
-        event &&
-        targetRef.value?.element &&
-        targetRef.value.element.contains(event.target as Node)
-      )
-        return
-      visible.value = false
-    }
-
-    const triggerSelect = (event: MouseEvent, key: string) => {
-      hide()
-      if (props.onSelect) props.onSelect(event, key)
-    }
-    update(props.values)
-    watch(
-      () => ({ ...props }),
-      (newProps) => update(newProps.values)
-    )
-    watch(
-      () => visible.value,
-      (value, oldValue) => {
-        if (value) document.addEventListener('click', hide)
-        else document.removeEventListener('click', hide)
+  } else if (props.icon || props.content) {
+    if (!Array.isArray(values) || values.length < 1) {
+      buttonContent.value = {
+        icon: props.icon,
+        content: typeof props.content === 'function' ? props.content() : props.content,
       }
-    )
-    return {
-      buttonRef,
-      isRight,
-      buttonContent,
-      valuesVar,
-      triggerMouseDown,
-      triggerClick,
-      show,
-      hide,
-      triggerSelect,
-      visible,
-      targetRef,
     }
-  },
-})
+  } else if (defaultItem) {
+    buttonContent.value = {
+      icon: defaultItem.icon,
+      content:
+        typeof defaultItem.content === 'function'
+          ? defaultItem.content()
+          : defaultItem.content,
+    }
+  }
+  valuesVar.value = values || (props.icon || props.content ? '' : defaultItem?.key || '')
+}
+
+const triggerMouseDown = (event: MouseEvent) => {
+  event.preventDefault()
+}
+const triggerClick = (event: MouseEvent) => {
+  event.preventDefault()
+  if (props.disabled) {
+    return
+  }
+  if (visible.value) {
+    hide()
+  } else {
+    show()
+  }
+}
+const show = () => {
+  visible.value = true
+}
+const hide = (event?: MouseEvent) => {
+  if (
+    event &&
+    targetRef.value?.element &&
+    targetRef.value.element.contains(event.target as Node)
+  )
+    return
+  visible.value = false
+}
+
+const triggerSelect = (event: MouseEvent, key: string) => {
+  hide()
+  if (props.onSelect) props.onSelect(event, key)
+}
+update(props.values)
+watch(
+  () => ({ ...props }),
+  (newProps) => update(newProps.values)
+)
+watch(
+  () => visible.value,
+  (value) => {
+    if (value) document.addEventListener('click', hide)
+    else document.removeEventListener('click', hide)
+  }
+)
 </script>
 <style>
 .toolbar-dropdown {

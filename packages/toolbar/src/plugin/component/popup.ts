@@ -1,8 +1,9 @@
-import { createApp, App } from 'vue'
-import { $, isEngine, isMobile, Range, UI_SELECTOR } from '@aomao/engine'
-import type { NodeInterface, EditorInterface } from '@aomao/engine'
-import Toolbar from '../../components/toolbar.vue'
+import { $, Range, UI_SELECTOR, isEngine, isMobile } from '@aomao/engine'
+import { App, createApp } from 'vue'
+import type { EditorInterface, NodeInterface } from '@aomao/engine'
+
 import type { GroupItemProps } from '../../types'
+import Toolbar from '../../components/ToolBar.vue'
 
 type PopupOptions = {
   items?: GroupItemProps[]

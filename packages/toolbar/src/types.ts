@@ -298,7 +298,7 @@ export type ToolbarItemProps =
 export type GroupItemDataProps = {
   icon?: string
   content?: string | (() => string) | VNode
-  items: Array<ToolbarItemProps | string>
+  items: (ToolbarItemProps | string)[]
 }
 
 export type GroupItemProps =
@@ -316,7 +316,7 @@ export type GroupItemProps =
   | GroupItemDataProps
 
 export type GroupDataProps = Omit<GroupItemDataProps, 'items'> & {
-  items: Array<ToolbarItemProps>
+  items: ToolbarItemProps[]
 }
 
 export const toolbarProps = {
@@ -325,8 +325,8 @@ export const toolbarProps = {
     required: true,
   },
   items: {
-    type: Array as PropType<Array<GroupItemProps>>,
-    default: [] as GroupItemProps[],
+    type: Array as PropType<GroupItemProps[]>,
+    default: [],
   },
   className: String,
   popup: {

@@ -1,9 +1,11 @@
-import { h } from 'vue'
-import { CARD_SELECTOR, EngineInterface, isEngine, Range } from '@aomao/engine'
-import { ToolbarItemProps } from '../types'
-import TableSelector from '../components/table.vue'
-import fontfamily, { defaultData as fontFamilyDefaultData } from './fontfamily'
 import './index.css'
+
+import { EngineInterface, Range, isEngine } from '@aomao/engine'
+import fontfamily, { defaultData as fontFamilyDefaultData } from './fontfamily'
+
+import TableSelector from '../components/table.vue'
+import { ToolbarItemProps } from '../types'
+import { h } from 'vue'
 
 export { fontfamily, fontFamilyDefaultData }
 
@@ -114,7 +116,8 @@ export const getToolbarDefaultConfig = (
               prompt:
                 !!engine.card.active || !engine.command.queryEnabled('table')
                   ? undefined
-                  : h(TableSelector, {
+                  : // @ts-ignore
+                    h(TableSelector, {
                       onSelect: (event: MouseEvent, rows: number, cols: number) => {
                         engine.command.execute('table', rows, cols)
                       },

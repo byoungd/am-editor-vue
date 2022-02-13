@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "dev": "vite --mode development",
-    "build": "vue-tsc --declaration --emitDeclarationOnly && vite build",
+    "build": "vite build",
+    "release": "vue-tsc --declaration --emitDeclarationOnly && vite build",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs"
   },
@@ -94,5 +95,6 @@
       "require": "./dist/toolbar.umd.js"
     },
     "./dist/style.css": "./dist/style.css"
-  }
+  },
+  "types": "./dist/types/index.d.ts"
 }

@@ -3,7 +3,7 @@ import ToolbarPlugin, { ToolbarComponent } from './plugin'
 import { fontFamilyDefaultData, fontfamily, getToolbarDefaultConfig } from './config'
 
 import type { App } from 'vue'
-import Toolbar from './components/toolbar.vue'
+import Toolbar from './components/ToolBar.vue'
 import type { ToolbarOptions } from './plugin'
 
 Toolbar.install = (app: App) => {

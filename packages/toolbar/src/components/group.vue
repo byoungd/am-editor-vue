@@ -1,6 +1,6 @@
 <template>
   <div v-if="!!icon || !!content" class="editor-toolbar-group">
-    <am-popover
+    <AmPopover
       :get-popup-container="getPopupContainer"
       overlay-class-name="editor-toolbar-popover"
       :arrow-point-at-center="true"
@@ -18,28 +18,28 @@
           data-element="ui"
         >
           <template v-for="(item, index) in items" :key="index">
-            <am-button
+            <AmButton
               v-if="item.type === 'button'"
               :key="index"
               v-bind="item"
               placement="top"
               :engine="engine"
             />
-            <am-dropdown
+            <AmDropdown
               v-if="item.type === 'dropdown'"
               :key="index"
               v-bind="item"
               placement="top"
               :engine="engine"
             />
-            <am-color
+            <AmColor
               v-if="item.type === 'color'"
               :key="index"
               v-bind="item"
               placement="top"
               :engine="engine"
             />
-            <am-collapse
+            <AmCollapse
               v-if="item.type === 'collapse'"
               :key="index"
               v-bind="item"
@@ -48,30 +48,25 @@
           </template>
         </div>
       </template>
-      <am-button name="group-popover" :icon="icon" :content="content" />
-    </am-popover>
+      <AmButton name="group-popover" :icon="icon" :content="content" />
+    </AmPopover>
   </div>
   <div class="editor-toolbar-group" v-if="!icon && !content">
     <template v-for="(item, index) in items" :key="index">
-      <am-button
+      <AmButton
         v-if="item.type === 'button'"
         :key="index"
         v-bind="item"
         :engine="engine"
       />
-      <am-dropdown
+      <AmDropdown
         v-if="item.type === 'dropdown'"
         :key="index"
         v-bind="item"
         :engine="engine"
       />
-      <am-color
-        v-if="item.type === 'color'"
-        :key="index"
-        v-bind="item"
-        :engine="engine"
-      />
-      <am-collapse
+      <AmColor v-if="item.type === 'color'" :key="index" v-bind="item" :engine="engine" />
+      <AmCollapse
         v-if="item.type === 'collapse'"
         :key="index"
         v-bind="item"
@@ -81,39 +76,34 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { isMobile } from '@aomao/engine'
+<script setup lang="ts" name="AmGroup">
+import { toRefs } from 'vue'
+import { EngineInterface, isMobile } from '@aomao/engine'
 import AmPopover from './Popover.vue'
 import AmButton from './button.vue'
 import AmDropdown from './dropdown.vue'
 import AmColor from './color/color.vue'
 import AmCollapse from './collapse/collapse.vue'
-import { groupProps } from '../types'
+import { GroupProps } from '../types'
 
-export default defineComponent({
-  name: 'AmGroup',
-  components: {
-    AmButton,
-    AmDropdown,
-    AmColor,
-    AmCollapse,
-    AmPopover,
-  },
-  props: groupProps,
-  setup() {
-    const getPopupContainer = () => {
-      document.querySelector('.data-toolbar-popup-wrapper') ||
-        document.querySelector('.editor-toolbar') ||
-        document.body
-    }
+interface IProp {
+  engine: EngineInterface
+  // TODO: update type definition
+  items: any[]
+  popup?: boolean
+  icon: GroupProps['icon']
+  content: GroupProps['content']
+}
 
-    return {
-      getPopupContainer,
-      isMobile,
-    }
-  },
-})
+const props = defineProps<IProp>()
+
+const { icon, content, engine, items, popup } = toRefs(props)
+
+const getPopupContainer = () => {
+  document.querySelector('.data-toolbar-popup-wrapper') ||
+    document.querySelector('.editor-toolbar') ||
+    document.body
+}
 </script>
 <style>
 .editor-toolbar-group {

@@ -4,7 +4,7 @@ import { Placement } from '@aomao/engine'
 interface IProp {
   placement: Placement
 }
-const props = defineProps<IProp>()
+defineProps<IProp>()
 </script>
 
 <template>

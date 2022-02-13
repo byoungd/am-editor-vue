@@ -1,3 +1,3 @@
 <template>
-  <div>popover</div>
+  <div><slot /></div>
 </template>

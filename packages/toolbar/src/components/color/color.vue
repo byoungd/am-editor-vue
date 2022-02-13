@@ -51,121 +51,126 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent, onUnmounted, ref, watch } from 'vue'
-import { colorProps } from '../../types'
+<script setup lang="ts" name="AmColor">
+import { onUnmounted, ref, watch, Ref, toRefs } from 'vue'
+import { ColorProps } from '../../types'
 import { useRight } from '../../hooks'
 import AmButton from '../button.vue'
 import AmColorPicker from './picker/picker.vue'
 import Palette from './picker/palette'
+import { EngineInterface, EngineOptions } from '@aomao/engine'
+import { IPropContent } from '../IPropTypes'
 
-export default defineComponent({
-  name: 'AmColor',
-  components: {
-    AmButton,
-    AmColorPicker,
-  },
-  props: colorProps,
-  setup(props) {
-    const visible = ref(false)
+interface IProp {
+  name: string
+  buttonTitle: string
+  defaultColor: string
+  defaultActiveColor: string
+  content: IPropContent
+  engine?: EngineInterface<EngineOptions>
+  colors?: ColorProps['colors']
+  disabled: ColorProps['disabled']
+  placement?: ColorProps['placement']
+  dropdownTitle: ColorProps['dropdownTitle']
+  autoExecute?: ColorProps['autoExecute']
+  command?: ColorProps['command']
+  onSelect?: ColorProps['onSelect']
+  setStroke?: ColorProps['setStroke']
+}
 
-    const buttonRef = ref<HTMLDivElement | null>(null)
-    const isRight = useRight(buttonRef)
-    const targetRef = ref<typeof AmButton | undefined>(undefined)
-    const currentColor = ref(props.defaultActiveColor)
+const props = defineProps<IProp>()
 
-    const getContent = () => {
-      return typeof props.content === 'string'
-        ? props.content
-        : props.content(
-            currentColor.value,
-            Palette.getStroke(currentColor.value),
-            props.disabled
-          )
-    }
+const { name, disabled, placement, dropdownTitle, colors, setStroke } = toRefs(props)
 
-    const buttonContent = ref(getContent())
+const visible = ref(false)
 
-    const toggleDropdown = (event: MouseEvent) => {
-      event.preventDefault()
+const buttonRef = ref<HTMLDivElement | null>(null)
+const isRight = useRight(buttonRef as Ref<HTMLElement | null>)
+const targetRef = ref<typeof AmButton | undefined>(undefined)
+const currentColor = ref(props.defaultActiveColor)
 
-      if (visible.value) {
-        hideDropdown()
-      } else {
-        showDropdown()
-      }
-    }
-
-    const showDropdown = () => {
-      visible.value = true
-    }
-
-    const hideDropdown = (event?: MouseEvent) => {
-      if (
-        event &&
-        targetRef.value?.element &&
-        targetRef.value.element.contains(event.target as Node)
+const getContent = () => {
+  const isStr = typeof props.content === 'string'
+  const isFn = typeof props.content === 'function'
+  return isStr
+    ? props.content
+    : isFn
+    ? props.content(
+        currentColor.value,
+        Palette.getStroke(currentColor.value),
+        props.disabled
       )
-        return
-      visible.value = false
-    }
+    : ''
+}
 
-    watch(
-      () => visible.value,
-      (value, oldValue) => {
-        if (value) document.addEventListener('click', hideDropdown)
-        else document.removeEventListener('click', hideDropdown)
+const buttonContent = ref(getContent())
+
+const toggleDropdown = (event: MouseEvent) => {
+  event.preventDefault()
+
+  if (visible.value) {
+    hideDropdown()
+  } else {
+    showDropdown()
+  }
+}
+
+const showDropdown = () => {
+  visible.value = true
+}
+
+const hideDropdown = (event?: MouseEvent) => {
+  if (
+    event &&
+    targetRef.value?.element &&
+    targetRef.value.element.contains(event.target as Node)
+  )
+    return
+  visible.value = false
+}
+
+watch(
+  () => visible.value,
+  (value) => {
+    if (value) document.addEventListener('click', hideDropdown)
+    else document.removeEventListener('click', hideDropdown)
+  }
+)
+
+const triggerClick = (event: MouseEvent) => {
+  triggerSelect(currentColor.value, event)
+}
+
+const triggerSelect = (color: string, event: MouseEvent) => {
+  hideDropdown()
+  currentColor.value = color
+  buttonContent.value =
+    typeof props.content === 'string'
+      ? props.content
+      : props.content(color, Palette.getStroke(color), props.disabled)
+
+  if (props.autoExecute !== false) {
+    let commandName = props.name
+    let commandArgs = [color, props.defaultColor]
+    if (props.command) {
+      if (!Array.isArray(props.command)) {
+        commandName = props.command.name
+        commandArgs = props.command.args
+      } else {
+        commandArgs = props.command
       }
-    )
-
-    const triggerClick = (event: MouseEvent) => {
-      triggerSelect(currentColor.value, event)
     }
+    commandName && props.engine?.command.execute(commandName, ...commandArgs)
+  }
+  if (props.onSelect) props.onSelect(color, event)
+}
 
-    const triggerSelect = (color: string, event: MouseEvent) => {
-      hideDropdown()
-      currentColor.value = color
-      buttonContent.value =
-        typeof props.content === 'string'
-          ? props.content
-          : props.content(color, Palette.getStroke(color), props.disabled)
+onUnmounted(() => document.removeEventListener('click', hideDropdown))
 
-      if (props.autoExecute !== false) {
-        let commandName = props.name
-        let commandArgs = [color, props.defaultColor]
-        if (props.command) {
-          if (!Array.isArray(props.command)) {
-            commandName = props.command.name
-            commandArgs = props.command.args
-          } else {
-            commandArgs = props.command
-          }
-        }
-        props.engine?.command.execute(commandName, ...commandArgs)
-      }
-      if (props.onSelect) props.onSelect(color, event)
-    }
-
-    onUnmounted(() => document.removeEventListener('click', hideDropdown))
-
-    watch(
-      () => ({ ...props }),
-      () => (buttonContent.value = getContent())
-    )
-
-    return {
-      buttonRef,
-      isRight,
-      visible,
-      buttonContent,
-      currentColor,
-      triggerSelect,
-      triggerClick,
-      toggleDropdown,
-      targetRef,
-    }
-  },
-})
+watch(
+  () => ({ ...props }),
+  () => (buttonContent.value = getContent())
+)
 </script>
 <style>
 .editor-toolbar .colorpicker-button .colorpicker-button-group {

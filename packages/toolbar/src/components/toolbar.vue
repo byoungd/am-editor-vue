@@ -15,156 +15,157 @@
   >
     <div class="editor-toolbar-content">
       <template v-if="engine">
-        <am-group
+        <AmGroup
           v-for="(group, index) in groups"
           :key="index"
           :engine="engine"
           :popup="popup"
-          v-bind="group"
+          :items="group.items"
+          :content="group.content"
+          :icon="group.icon"
         />
       </template>
     </div>
   </div>
 </template>
 <script setup lang="ts" name="AmToolbar">
-import { onMounted, onUnmounted, ref, reactive } from 'vue'
+import { onMounted, onUnmounted, ref, reactive, toRefs } from 'vue'
 import { merge, omit } from 'lodash'
-import { EngineInterface, isMobile } from '@aomao/engine'
+import { isMobile } from '@aomao/engine'
 import {
-  ToolbarButtonProps,
   CollapseItemProps,
-  ToolbarColorProps,
   ToolbarDropdownProps,
   GroupDataProps,
   ToolbarCollapseGroupProps,
 } from '../types'
 import AmGroup from './group.vue'
 import locales from '../locales'
-import { getToolbarDefaultConfig } from '~/config'
-import { GroupItemProps } from '..'
+import { getToolbarDefaultConfig } from '../config'
+import { IPropItems, IPropEngine, IPropToolbarItem } from './IPropTypes'
 
-const props = withDefaults(
-  defineProps<{
-    className?: string
-    popup?: boolean
-    onLoad?: Function
-    items?: GroupItemProps[]
-    engine: EngineInterface
-  }>(),
-  {
-    className: '',
-    popup: false,
-    items: () => [],
-    onLoad: () => undefined,
-    engine: undefined,
-  }
-)
+interface IProp {
+  engine: IPropEngine
+  items: IPropItems
+  className?: string
+  popup?: boolean
+  onLoad?: Function
+}
 
-let groups = ref<Array<GroupDataProps>>([])
+const props = defineProps<IProp>()
+const { className, popup, engine } = toRefs(props)
+
+const groups = ref<GroupDataProps[]>([])
+
+// TODO: support object and string type config
 const update = () => {
   if (isMobile) calcMobileView()
-  const data: Array<GroupDataProps> = []
-  if (!props.engine) return
-  const defaultConfig = getToolbarDefaultConfig(props.engine)
-  props.items.forEach((group) => {
-    const dataGroup: GroupDataProps = { items: [] }
-    if (!Array.isArray(group)) {
-      dataGroup.icon = group.icon
-      dataGroup.content = group.content
+  const dataGroup: GroupDataProps = { icon: '', items: [], content: '' }
+  const data: GroupDataProps[] = []
+  const defaultConfig = getToolbarDefaultConfig(engine.value)
 
-      group = group.items
-    }
-    group.forEach((item) => {
-      let customItem:
-        | ToolbarButtonProps
-        | ToolbarDropdownProps
-        | ToolbarColorProps
-        | ToolbarCollapseGroupProps
-        | undefined = undefined
-      if (typeof item === 'string') {
-        const defaultItem = defaultConfig.find((config) =>
-          item === 'collapse'
-            ? config.type === item
-            : config.type !== 'collapse' && config.name === item
-        )
-        if (defaultItem) customItem = defaultItem
-      } else {
-        const defaultItem = defaultConfig.find((config) =>
-          item.type === 'collapse'
-            ? config.type === item.type
-            : config.type !== 'collapse' && config.name === item.name
-        )
-        // parse collapse item when it's string
-        if (item.type === 'collapse') {
-          const customCollapse: ToolbarCollapseGroupProps = {
-            ...merge(omit({ ...defaultItem }, 'groups'), omit({ ...item }, 'groups')),
-            groups: [],
+  if (Array.isArray(props.items)) {
+    props.items.forEach((group) => {
+      if (!Array.isArray(group)) {
+        // @ts-ignore
+        dataGroup.icon = group.icon
+        // @ts-ignore
+        dataGroup.content = group.content
+        // @ts-ignore
+        group = [...group.items]
+      }
+      if (Array.isArray(group)) {
+        group.forEach((item) => {
+          let customItem: IPropToolbarItem | undefined
+          if (typeof item === 'string') {
+            const defaultItem = defaultConfig.find((config) =>
+              item === 'collapse'
+                ? config.type === item
+                : config.type !== 'collapse' && config.name === item
+            )
+            if (defaultItem) customItem = defaultItem
+          } else {
+            const defaultItem = defaultConfig.find((config) =>
+              item.type === 'collapse'
+                ? config.type === item.type
+                : config.type !== 'collapse' && config.name === item.name
+            )
+            // parse collapse item when it's string
+            if (item.type === 'collapse') {
+              const customCollapse: ToolbarCollapseGroupProps = {
+                ...merge(omit({ ...defaultItem }, 'groups'), omit({ ...item }, 'groups')),
+                groups: [],
+              } as ToolbarCollapseGroupProps
+              item.groups.forEach((group) => {
+                const items: Array<Omit<CollapseItemProps, 'engine'>> = []
+                group.items.forEach((cItem) => {
+                  let targetItem = undefined
+                  ;(defaultItem as ToolbarCollapseGroupProps).groups.some((g) =>
+                    g.items.some((i) => {
+                      const isEqual =
+                        i.name === (typeof cItem === 'string' ? cItem : cItem.name)
+                      if (isEqual) {
+                        targetItem = { ...i, ...(typeof cItem === 'string' ? {} : cItem) }
+                      }
+                      return isEqual
+                    })
+                  )
+                  if (targetItem) items.push(targetItem)
+                  else if (typeof cItem === 'object') items.push(cItem)
+                })
+                if (items.length > 0) {
+                  customCollapse.groups.push({ ...omit(group, 'items'), items })
+                }
+              })
+              customItem = customCollapse.groups.length > 0 ? customCollapse : undefined
+            } else if (item.type === 'dropdown') {
+              customItem = defaultItem
+                ? merge(defaultItem, omit({ ...item }, 'type', 'items'))
+                : { ...item }
+              ;(customItem as ToolbarDropdownProps).items = item.items
+            } else {
+              customItem = defaultItem
+                ? merge(defaultItem, omit({ ...item }, 'type'))
+                : { ...item }
+            }
           }
-          item.groups.forEach((group) => {
-            const items: Array<Omit<CollapseItemProps, 'engine'>> = []
-            group.items.forEach((cItem) => {
-              let targetItem = undefined
-              ;(defaultItem as ToolbarCollapseGroupProps).groups.some((g) =>
-                g.items.some((i) => {
-                  const isEqual =
-                    i.name === (typeof cItem === 'string' ? cItem : cItem.name)
-                  if (isEqual) {
-                    targetItem = { ...i, ...(typeof cItem === 'string' ? {} : cItem) }
-                  }
-                  return isEqual
+          if (customItem && props.engine) {
+            if (customItem.type === 'button') {
+              if (customItem.onActive) customItem.active = customItem.onActive()
+              else if (props.engine.command.queryEnabled(customItem.name))
+                customItem.active = props.engine.command.queryState(customItem.name)
+            } else if (customItem.type === 'dropdown') {
+              if (customItem.onActive)
+                customItem.values = customItem.onActive(customItem.items)
+              else customItem.values = props.engine.command.queryState(customItem.name)
+            }
+            if (customItem.type !== 'collapse')
+              customItem.disabled = customItem.onDisabled
+                ? customItem.onDisabled()
+                : !props.engine.command.queryEnabled(customItem.name)
+            else {
+              customItem.groups.forEach((group) =>
+                group.items.forEach((item) => {
+                  item.disabled = item.onDisabled
+                    ? item.onDisabled()
+                    : !props.engine?.command.queryEnabled(item.name)
                 })
               )
-              if (targetItem) items.push(targetItem)
-              else if (typeof cItem === 'object') items.push(cItem)
-            })
-            if (items.length > 0) {
-              customCollapse.groups.push({ ...omit(group, 'itmes'), items })
+              customItem.disabled = !customItem.groups.some((g) =>
+                g.items.some((item) => !item.disabled)
+              )
             }
-          })
-          customItem = customCollapse.groups.length > 0 ? customCollapse : undefined
-        } else if (item.type === 'dropdown') {
-          customItem = defaultItem
-            ? merge(defaultItem, omit({ ...item }, 'type', 'items'))
-            : { ...item }
-          ;(customItem as ToolbarDropdownProps).items = item.items
-        } else {
-          customItem = defaultItem
-            ? merge(defaultItem, omit({ ...item }, 'type'))
-            : { ...item }
-        }
-      }
-      if (customItem && props.engine) {
-        if (customItem.type === 'button') {
-          if (customItem.onActive) customItem.active = customItem.onActive()
-          else if (props.engine.command.queryEnabled(customItem.name))
-            customItem.active = props.engine.command.queryState(customItem.name)
-        } else if (customItem.type === 'dropdown') {
-          if (customItem.onActive)
-            customItem.values = customItem.onActive(customItem.items)
-          else customItem.values = props.engine.command.queryState(customItem.name)
-        }
-        if (customItem.type !== 'collapse')
-          customItem.disabled = customItem.onDisabled
-            ? customItem.onDisabled()
-            : !props.engine.command.queryEnabled(customItem.name)
-        else {
-          customItem.groups.forEach((group) =>
-            group.items.forEach((item) => {
-              item.disabled = item.onDisabled
-                ? item.onDisabled()
-                : !props.engine?.command.queryEnabled(item.name)
-            })
-          )
-          customItem.disabled = !customItem.groups.some((g) =>
-            g.items.some((item) => !item.disabled)
-          )
-        }
-        dataGroup.items.push(customItem)
+            dataGroup.items.push(customItem as IPropToolbarItem)
+          }
+        })
       }
     })
-    if (dataGroup.items.length > 0) data.push(dataGroup)
-  })
-  groups.value = data
+  }
+
+  if (dataGroup.items.length > 0) {
+    data.push(dataGroup)
+    // @ts-ignore
+    groups.value = [...data]
+  }
 }
 
 // mobile
@@ -236,8 +237,8 @@ onMounted(() => {
 function preventDefault(event: MouseEvent) {
   event.preventDefault()
 }
-function triggerMouseDown() {
-  console.log('triggerMouseDown')
+function triggerMouseDown(event: MouseEvent) {
+  event.preventDefault()
 }
 function triggerMouseOver(event: MouseEvent) {
   preventDefault(event)

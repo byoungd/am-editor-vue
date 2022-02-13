@@ -32,75 +32,70 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent, onUnmounted, ref } from 'vue'
-import { collapseProps } from '../../types'
+<script setup lang="ts" name="AmCollapse" ,>
+import { onUnmounted, ref, Ref, toRefs } from 'vue'
+import { CollapseProps } from '../../types'
 import { useRight } from '../../hooks'
 import AmButton from '../button.vue'
 import AmCollapseGroup from './group.vue'
 
-export default defineComponent({
-  name: 'AmCollapse',
-  components: {
-    AmButton,
-    AmCollapseGroup,
-  },
-  props: collapseProps,
-  setup(props) {
-    const isCustomize = !(props.icon || props.content)
-    const visible = ref(isCustomize)
-    const collapse = ref<HTMLElement | null>(null)
+interface IProp {
+  engine?: CollapseProps['engine']
+  header: string
+  groups: CollapseProps['groups']
+  disabled?: boolean
+  className?: CollapseProps['className']
+  icon?: string
+  content?: CollapseProps['content']
+  onSelect?: CollapseProps['onSelect']
+}
+const props = defineProps<IProp>()
 
-    const isRight = useRight(collapse)
+const { className } = toRefs(props)
 
-    onUnmounted(() => {
-      if (isCustomize) document.removeEventListener('click', hide)
-    })
+const isCustomize = !(props.icon || props.content)
+const visible = ref(isCustomize)
+const collapse = ref<HTMLElement | null>(null)
 
-    const show = () => {
-      visible.value = true
-      setTimeout(() => {
-        document.addEventListener('click', hide)
-      }, 10)
-    }
+const isRight = useRight(collapse as Ref<HTMLElement | null>)
 
-    const hide = (event?: MouseEvent) => {
-      if (event) {
-        // let node = event.target;
-        // while (node) {
-        //     if (node === collapse.value) {
-        //         return;
-        //     }
-        //     node = (node as Element).parentNode;
-        // }
-      }
-      document.removeEventListener('click', hide)
-      visible.value = false
-    }
-
-    const triggerClick = () => {
-      if (visible.value) {
-        hide()
-      } else {
-        show()
-      }
-    }
-
-    const triggerSelect = (event: MouseEvent, name: string) => {
-      hide()
-      if (props.onSelect) props.onSelect(event, name)
-    }
-
-    return {
-      isCustomize,
-      visible,
-      collapse,
-      isRight,
-      triggerClick,
-      triggerSelect,
-    }
-  },
+onUnmounted(() => {
+  if (isCustomize) document.removeEventListener('click', hide)
 })
+
+const show = () => {
+  visible.value = true
+  setTimeout(() => {
+    document.addEventListener('click', hide)
+  }, 10)
+}
+
+const hide = (event?: MouseEvent) => {
+  if (event) {
+    // let node = event.target;
+    // while (node) {
+    //     if (node === collapse.value) {
+    //         return;
+    //     }
+    //     node = (node as Element).parentNode;
+    // }
+  }
+  document.removeEventListener('click', hide)
+  visible.value = false
+}
+
+const triggerClick = () => {
+  if (visible.value) {
+    hide()
+  } else {
+    show()
+  }
+}
+
+const triggerSelect = (event: MouseEvent, name: string) => {
+  hide()
+  if (props.onSelect) props.onSelect(event, name)
+}
 </script>
 <style>
 .toolbar-collapse-header {

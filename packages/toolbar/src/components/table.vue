@@ -21,56 +21,42 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts" name="AmTable">
 import { defineComponent, PropType, ref } from 'vue'
 
-export default defineComponent({
-  name: 'AmTable',
-  props: {
-    maxRows: Number,
-    maxCols: Number,
-    minRows: Number,
-    minCols: Number,
-    onSelect: Function as PropType<
-      (event: MouseEvent, rows: number, cols: number) => void
-    >,
-  },
-  setup(props) {
-    const maxRows = ref(props.maxRows || 10)
-    const maxCols = ref(props.maxCols || 10)
-    const minRows = ref(props.minRows || 4)
-    const minCols = ref(props.minCols || 4)
-    const currentRows = ref(4)
-    const currentCols = ref(4)
-    const selectedRows = ref(0)
-    const selectedCols = ref(0)
+interface IProps {
+  maxRows: number
+  maxCols: number
+  minRows: number
+  minCols: number
+  onSelect: (event: MouseEvent, rows: number, cols: number) => void
+}
 
-    function triggerMouseDown(event: MouseEvent) {
-      event.preventDefault()
-    }
-    function triggerSelect(event: MouseEvent, rows: number, cols: number) {
-      props.onSelect && props.onSelect(event, rows + 1, cols + 1)
-    }
-    function triggerHover(rows: number, cols: number) {
-      const showRows = Math.max(minRows.value, Math.min(maxRows.value, rows + 2))
-      const showCols = Math.max(minCols.value, Math.min(maxCols.value, cols + 2))
-      currentRows.value = showRows
-      currentCols.value = showCols
-      selectedRows.value = rows + 1
-      selectedCols.value = cols + 1
-    }
+const props = defineProps<IProps>()
 
-    return {
-      currentRows,
-      currentCols,
-      selectedRows,
-      selectedCols,
-      triggerMouseDown,
-      triggerSelect,
-      triggerHover,
-    }
-  },
-})
+const maxRows = ref(props.maxRows || 10)
+const maxCols = ref(props.maxCols || 10)
+const minRows = ref(props.minRows || 4)
+const minCols = ref(props.minCols || 4)
+const currentRows = ref(4)
+const currentCols = ref(4)
+const selectedRows = ref(0)
+const selectedCols = ref(0)
+
+function triggerMouseDown(event: MouseEvent) {
+  event.preventDefault()
+}
+function triggerSelect(event: MouseEvent, rows: number, cols: number) {
+  props.onSelect && props.onSelect(event, rows + 1, cols + 1)
+}
+function triggerHover(rows: number, cols: number) {
+  const showRows = Math.max(minRows.value, Math.min(maxRows.value, rows + 2))
+  const showCols = Math.max(minCols.value, Math.min(maxCols.value, cols + 2))
+  currentRows.value = showRows
+  currentCols.value = showCols
+  selectedRows.value = rows + 1
+  selectedCols.value = cols + 1
+}
 </script>
 <style>
 .data-toolbar-table-selector .data-toolbar-table-selector-tr {
