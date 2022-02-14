@@ -1,7 +1,5 @@
-<script setup lang="ts" name="IndexPage">
-import Editor from '~/components/Editor/'
-</script>
+<script setup lang="ts" name="IndexPage"></script>
 
 <template>
-  <Editor />
+  <div>hello</div>
 </template>
