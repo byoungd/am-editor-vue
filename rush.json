@@ -456,6 +456,11 @@
       "packageName": "@am/toolbar-vue",
       "projectFolder": "packages/toolbar",
       "reviewCategory": "toolbar"
+    },
+    {
+      "packageName": "editor",
+      "projectFolder": "packages/editor",
+      "reviewCategory": "editor"
     }
   ]
 }
