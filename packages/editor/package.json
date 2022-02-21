@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "vite --mode development",
-    "build": "vite build",
+    "build": "vue-tsc && vite build",
     "release": "vue-tsc && vite build",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

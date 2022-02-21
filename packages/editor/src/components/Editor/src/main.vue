@@ -9,34 +9,37 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="RedaxeEditor">
 import { onMounted, onUnmounted, ref } from 'vue'
 
 import Engine, { $, EngineInterface, ChangeInterface, isMobile } from '@aomao/engine'
 import AmToolbar, { GroupItemProps } from '@aomao/toolbar-vue'
 import AmLoading from './loading.vue'
 import { cards, plugins, pluginConfig } from './config'
-
-import { defaultContent, getDefaultToolbarItems } from './default'
+import { defaultContent, getDefaultToolbarItems, getDefaultStyle } from './default'
+import { StyleOption, NODES, Message } from './types'
 
 interface IProps {
   content: string
-  items: GroupItemProps[]
+  styleOption?: Partial<StyleOption>
+  items?: GroupItemProps[]
 }
 
 const props = withDefaults(defineProps<IProps>(), {
   content: defaultContent,
   items: () => getDefaultToolbarItems(isMobile),
+  styleOption: () => ({}),
 })
 
-type NODES = string | undefined | (string | {})[]
+const styles = ref<StyleOption>({ ...getDefaultStyle(), ...props.styleOption })
 
 const emit = defineEmits<{
   (type: 'change', change: { html: string; json: NODES }): void
   (event: 'changeHTML', content: string): void
   (event: 'changeJSON', content: NODES): void
   (event: 'select', change: ChangeInterface): void
-  (event: 'confirm', msg: string): void
+  (event: 'confirm', message: string): Promise<boolean>
+  (event: 'message', message: Message): void
 }>()
 
 // 编辑器容器
@@ -65,16 +68,18 @@ onMounted(() => {
     })
     // 设置显示成功消息UI，默认使用 console.log
     engineInstance.messageSuccess = (msg: string) => {
-      message.success(msg)
+      emit('message', { type: 'success', msg })
     }
     // 设置显示错误消息UI，默认使用 console.error
     engineInstance.messageError = (error: string) => {
-      message.error(error)
+      emit('message', { type: 'error', msg: error })
     }
 
     // 设置显示确认消息UI，默认无
     engineInstance.messageConfirm = (msg: string) => {
-      emit('confirm', msg)
+      return new Promise((resolve, reject) => {
+        emit('confirm', msg).then(resolve, reject)
+      })
     }
     // 卡片最大化时设置编辑页面样式
     engineInstance.on('card:maximize', () => {
@@ -115,7 +120,7 @@ onUnmounted(() => {
   if (engine.value) engine.value.destroy()
 })
 </script>
-<style>
+<style scoped>
 #app {
   padding: 0;
 }
@@ -143,7 +148,8 @@ onUnmounted(() => {
   position: fixed;
   width: 100%;
   background: #ffffff;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.02);
+  /* transition: box-shadow 0.3s ease-in-out;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 15%); */
   z-index: 1000;
 }
 .editor-wrapper {
@@ -156,11 +162,14 @@ onUnmounted(() => {
 }
 
 .editor-container {
-  background: #fafafa;
-  background-color: #fafafa;
+  background: transparent;
   height: 100%;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 0 auto;
+  margin-top: 1px;
   overflow: auto;
   position: relative;
 }
@@ -173,13 +182,15 @@ onUnmounted(() => {
 
 .editor-content {
   position: relative;
-  width: 90vw;
-  height: calc(100vh - 100px);
-  margin: 0 auto;
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  overflow: hidden;
-  min-height: 800px;
+  width: v-bind(styles.width);
+  height: v-bind(styles.height);
+  margin: v-bind(styles.margin);
+  padding: v-bind(styles.padding);
+  background: v-bind(styles.background);
+  box-shadow: v-bind(styles.boxShadow);
+  border: v-bind(styles.border);
+  overflow-y: v-bind(styles.overflowY);
+  min-height: v-bind(styles.minHeight);
 }
 
 .editor-mobile .editor-content {
